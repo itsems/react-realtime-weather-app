@@ -1,3 +1,6 @@
+// https://opendata.cwb.gov.tw/dist/opendata-swagger.html#/%E9%A0%90%E5%A0%B1/get_v1_rest_datastore_F_C0032_001
+// https://github.com/pjchender/learn-react-from-hook-realtime-weather-app/blob/master/README.md
+
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
 import { ReactComponent as DayCloudyIcon } from './images/day-cloudy.svg'
@@ -7,6 +10,8 @@ import { ReactComponent as RefreshIcon } from './images/refresh.svg'
 
 import { ThemeProvider } from '@emotion/react'
 
+const AUTHORIZATION_KEY= 'CWB-99C1E0AF-7562-4109-86EA-4B53B53FB279';
+const LOCATION_NAME='臺北'
 
 const Container = styled.div`
   background-color: ${({ theme }) => theme.backgroundColor};
@@ -106,7 +111,6 @@ const Refresh = styled.div`
   }
 `;
 
-
 const theme = {
   light: {
     backgroundColor: '#ededed',
@@ -131,24 +135,59 @@ const theme = {
 const App = () => {
 
   const [currentTheme, setCurrentTheme] = useState('light');
+
+  const [currentWeather, setCurrentWeather] = useState({
+    locationName: '台北市',
+    description: '多雲時晴',
+    windSpeed: 1.1,
+    temperature: 22.7,
+    rainPossibility: 48.3,
+    observationTime: '2020-12-12 22:20:00'
+  })
+
+  // 局屬觀測站-天氣觀測: 帶觀測站名稱：臺北
+  // 天氣預報帶縣市：臺北市
+  const handleClick = () => {
+    fetch(
+      `https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME}`
+    )
+      .then((response) => response.json())
+      .then(data => {
+        console.log('data', data);
+        const locationData = data.records.location[0];
+        const weatherElements = locationData.weatherElement.reduce(
+          (needElements, item) => {
+            if(['WDSD', 'TEMP'].includes(item.elementName)) {
+              needElements[item.elementName] = item.elementValue;
+            }
+            return needElements
+          }, {}
+        )
+        console.log('weatherElements', weatherElements);
+      })
+  }
   
   return (
     <ThemeProvider theme={theme[currentTheme]}>
       <Container>
         <WeatherCard>
-          <Location theme="dar">台北市</Location>
-          <Description>多雲時晴</Description>
+          <Location>{currentWeather.locationName}</Location>
+          <Description>{currentWeather.description}</Description>
           <CurrentWeather>
             <Temperature>
-              23 <Celsius>C</Celsius>
+              {Math.round(currentWeather.temperature)} <Celsius>C</Celsius>
             </Temperature>
             <DayCloudy />
           </CurrentWeather>
           <AirFlow>
-            <AirFlowIcon /> 23 m/h
+            <AirFlowIcon /> {currentWeather.windSpeed} m/h
           </AirFlow>
-          <Rain> <RainIcon />48% </Rain>
-          <Refresh> 最後觀測時間：上午 12:25 <RefreshIcon /> </Refresh>
+          <Rain> <RainIcon />{currentWeather.rainPossibility}% </Rain>
+          <Refresh onClick={handleClick}> 最後觀測時間：
+            {new Intl.DateTimeFormat('zh-TW', {
+              hour: 'numeric',
+              minute: 'numeric',
+            }).format(new Date(currentWeather.observationTime))} {' '}<RefreshIcon /> </Refresh>
         </WeatherCard>
       </Container>
     </ThemeProvider>
