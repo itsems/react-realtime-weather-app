@@ -164,6 +164,14 @@ const App = () => {
           }, {}
         )
         console.log('weatherElements', weatherElements);
+        setCurrentWeather({
+          observationTime: locationData.time.obsTime,
+          locationName: locationData.locationName,
+          temperature: weatherElements.TEMP,
+          windSpeed: weatherElements.WDSD,
+          description: '多雲時晴',
+          rainPossibility: 60
+        })
       })
   }
   
