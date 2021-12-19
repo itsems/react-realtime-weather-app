@@ -13,7 +13,8 @@ import { ReactComponent as LoadingIcon } from './images/loading.svg'
 import { ThemeProvider } from '@emotion/react'
 
 const AUTHORIZATION_KEY= 'CWB-99C1E0AF-7562-4109-86EA-4B53B53FB279';
-const LOCATION_NAME='臺北'
+const LOCATION_NAME='臺北';
+const LOCATION_NAME_FORECAST='臺北市';
 
 const Container = styled.div`
   background-color: ${({ theme }) => theme.backgroundColor};
@@ -111,7 +112,7 @@ const Refresh = styled.div`
     height: 15px;
     cursor: pointer;
     animation: rotate infinite 1.5s linear;
-    animation-duration: ${({ isLoading }) => (isLoading ? '1.5s' : '0s')}
+    animation-duration: ${ (props) => { return props.isLoading} }
   }
   @keyframes rotate {
     from {
@@ -150,26 +151,30 @@ const App = () => {
   
   const [currentTheme, setCurrentTheme] = useState('light');
 
-  const [currentWeather, setCurrentWeather] = useState({
+  const [weatherElement, setWeatherElement] = useState({
     locationName: '台北市',
     description: '多雲時晴',
     windSpeed: 1.1,
     temperature: 22.7,
     rainPossibility: 48.3,
     observationTime: '2020-12-12 22:20:00',
+    comfortability: '舒適至悶熱',
+    weatherCode: 0,
     isLoading: true
   })
 
   useEffect(() => {
+    console.clear();
     console.log('execute function in useEffect')
     fetchCurrentWeather();
+    fetchWeatherForecast();
   }, [])
 
-  // 局屬觀測站-天氣觀測: 帶觀測站名稱：臺北
-  // 天氣預報帶縣市：臺北市
+  // 局屬觀測站-天氣觀測: 帶「觀測站名稱」：臺北(fetchCurrentWeather)
+  // 天氣預報：帶「縣市」：臺北市(fetchWeatherForecast)
   const fetchCurrentWeather = () => {
     
-    setCurrentWeather((prevState) => ({
+    setWeatherElement((prevState) => ({
       ...prevState, 
       isLoading: true
     }))
@@ -179,7 +184,7 @@ const App = () => {
     )
       .then((response) => response.json())
       .then(data => {
-        console.log('data', data);
+        // console.log('data', data);
         const locationData = data.records.location[0];
         const weatherElements = locationData.weatherElement.reduce(
           (needElements, item) => {
@@ -190,7 +195,8 @@ const App = () => {
           }, {}
         )
         console.log('weatherElements', weatherElements);
-        setCurrentWeather({
+        setWeatherElement((prev) => ({
+          ...prev,
           observationTime: locationData.time.obsTime,
           locationName: locationData.locationName,
           temperature: weatherElements.TEMP,
@@ -198,8 +204,38 @@ const App = () => {
           description: '多雲時晴',
           rainPossibility: 60,
           isLoading: false
-        })
+        }))
       })
+  }
+
+  const fetchWeatherForecast = () => {
+    fetch(
+      `https://opendata.cwb.gov.tw/api/v1/rest/datastore/F-C0032-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME_FORECAST}`
+    )
+    .then((res) => res.json())
+    .then(data => {
+      console.log(data);
+      const locationData = data.records.location[0];
+
+      const weatherElements = locationData.weatherElement.reduce(
+        (needElements, item) => {
+          if(['Wx','PoP','CI'].includes(item.elementName)) {
+            needElements[item.elementName] = item.time[0].parameter;
+          }
+          return needElements
+        },
+        {}
+      )
+      console.log(weatherElements);
+      setWeatherElement((prev) => ({
+        ...prev, 
+        description: weatherElements.Wx.parameterName, 
+        weatherCode: weatherElements.Wx.parameterValue,
+        rainPossibility: weatherElements.PoP.parameterName,
+        comfortability: weatherElements.CI.parameterName
+      }))
+    })
+
   }
 
   const {
@@ -210,7 +246,7 @@ const App = () => {
     temperature,
     rainPossibility,
     isLoading
-  } = currentWeather;
+  } = weatherElement;
   
   return (
     <ThemeProvider theme={theme[currentTheme]}>

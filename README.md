@@ -31,6 +31,11 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 
 ### Development Records
 
+- [【從 Hooks 開始，讓網頁 React 起來】台灣好天氣 - 臺灣即時天氣 App 🇹🇼](https://github.com/pjchender/learn-react-from-hook-realtime-weather-app)
+- [中央氣象局開放資料平臺之資料擷取API swagger doc](https://opendata.cwb.gov.tw/dist/opendata-swagger.html#/%E9%A0%90%E5%A0%B1/get_v1_rest_datastore_F_C0032_001)
+
+
+
 Date           | - |
 --------------|:-----|
-2021/12/19    | Finish useState to get response  |
+2021/12/19    | 完成天氣觀測資料取得與更新、處理取得天氣預報資料 |
