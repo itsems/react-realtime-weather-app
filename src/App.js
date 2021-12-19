@@ -1,7 +1,7 @@
 // https://opendata.cwb.gov.tw/dist/opendata-swagger.html#/%E9%A0%90%E5%A0%B1/get_v1_rest_datastore_F_C0032_001
 // https://github.com/pjchender/learn-react-from-hook-realtime-weather-app/blob/master/README.md
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { ReactComponent as DayCloudyIcon } from './images/day-cloudy.svg'
 import { ReactComponent as AirFlowIcon } from './images/airFlow.svg'
@@ -134,6 +134,8 @@ const theme = {
 
 const App = () => {
 
+  console.log('invoke function component')
+  
   const [currentTheme, setCurrentTheme] = useState('light');
 
   const [currentWeather, setCurrentWeather] = useState({
@@ -145,9 +147,14 @@ const App = () => {
     observationTime: '2020-12-12 22:20:00'
   })
 
+  useEffect(() => {
+    console.log('execute function in useEffect')
+    fetchCurrentWeather();
+  }, [])
+
   // 局屬觀測站-天氣觀測: 帶觀測站名稱：臺北
   // 天氣預報帶縣市：臺北市
-  const handleClick = () => {
+  const fetchCurrentWeather = () => {
     fetch(
       `https://opendata.cwb.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization=${AUTHORIZATION_KEY}&locationName=${LOCATION_NAME}`
     )
@@ -178,6 +185,7 @@ const App = () => {
   return (
     <ThemeProvider theme={theme[currentTheme]}>
       <Container>
+        {console.log('render')}
         <WeatherCard>
           <Location>{currentWeather.locationName}</Location>
           <Description>{currentWeather.description}</Description>
@@ -191,7 +199,7 @@ const App = () => {
             <AirFlowIcon /> {currentWeather.windSpeed} m/h
           </AirFlow>
           <Rain> <RainIcon />{currentWeather.rainPossibility}% </Rain>
-          <Refresh onClick={handleClick}> 最後觀測時間：
+          <Refresh onClick={fetchCurrentWeather}> 最後觀測時間：
             {new Intl.DateTimeFormat('zh-TW', {
               hour: 'numeric',
               minute: 'numeric',
